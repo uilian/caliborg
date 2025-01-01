@@ -25,11 +25,6 @@ Run the application
 make run
 ```
 
-Live reload the application:
-```bash
-make watch
-```
-
 Run the test suite:
 ```bash
 make test
