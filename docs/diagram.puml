@@ -1,0 +1,44 @@
+@startuml
+!pragma layout smetana
+
+package "Caliborg" {
+
+  class "Main" {
+    + main()
+  }
+
+  package "API Layer" {
+    class "GoogleBooksAPI" {
+      + FetchMetadata(title: string) : (description: string, categories: []string)
+    }
+  }
+
+  package "Utility Layer" {
+    class "BookUtils" {
+      + CleanBookName(bookName: string) : string
+      + CategorizeBook(title: string, description: string) : string
+      + Unique(slice: []string) : []string
+    }
+  }
+
+  package "Data Storage" {
+    class "FileHandler" {
+      + ReadJSON(filePath: string) : []Book
+      + WriteJSON(filePath: string, data: []Book)
+    }
+  }
+
+  package "Testing" {
+    class "TestSuite" {
+      + MockFetchMetadata(title: string) : (description: string, categories: []string)
+    }
+  }
+
+  "Main" --> "GoogleBooksAPI" : calls FetchMetadata()
+  "Main" --> "BookUtils" : uses utility functions
+  "Main" --> "FileHandler" : reads and writes JSON
+  "TestSuite" --> "GoogleBooksAPI" : mocks FetchMetadata()
+  "BookUtils" --> "FileHandler" : optional interaction (if utility writes files)
+
+}
+@enduml

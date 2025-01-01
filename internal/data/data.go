@@ -1,6 +1,7 @@
 package data
 
 import (
+	"CalibreMetadataOrganizer/internal/utils"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -67,28 +68,27 @@ var Categories = map[string][]string{
 		"exercise", "yoga", "diet", "therapy", "self-care", "healthcare", "anatomy",
 		"psychology", "public health",
 	},
-	"Uncategorized": {},
 }
 
 func LoadBooks(filename string) []Book {
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		utils.Error(fmt.Sprintf("Error reading file: %s", err))
 		os.Exit(1)
 	}
-
 	var books []Book
 	if err := json.Unmarshal(file, &books); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		utils.Error(fmt.Sprintf("Error unmarshalling JSON: %s", err))
 		os.Exit(1)
 	}
+	utils.Debug(fmt.Sprintf("Loaded %d books ...", len(books)))
 	return books
 }
 
 func SaveBooks(books []Book, filename string) {
 	data, err := json.MarshalIndent(books, "", "  ")
 	if err != nil {
-		fmt.Println("Error marshalling data:", err)
+		utils.Error(fmt.Sprintf("Error marshalling data: %s", err))
 		os.Exit(1)
 	}
 	os.WriteFile(filename, data, 0644)

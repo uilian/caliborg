@@ -7,10 +7,10 @@ import (
 
 func TestContains(t *testing.T) {
 	slice := []string{"a", "b", "c"}
-	if !utils.Contains(slice, "a") {
+	if !utils.Contains(slice, "a") || !utils.ContainsIgnoreCase(slice, "A") {
 		t.Error("Expected 'a' to be in slice")
 	}
-	if utils.Contains(slice, "d") {
+	if utils.Contains(slice, "d") || utils.ContainsIgnoreCase(slice, "D") {
 		t.Error("Expected 'd' to not be in slice")
 	}
 }

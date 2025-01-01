@@ -16,26 +16,40 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		fmt.Println("Error loading .env file")
+		utils.Error("Error loading .env file")
+		os.Exit(1)
+	}
+	// Load from the environment variables the path file
+	// containing the saved library contents.
+	libraryPath, ok := os.LookupEnv("LIBRARY_PATH")
+	if !ok {
+		utils.Error("LIBRARY_PATH not found in environment")
 		os.Exit(1)
 	}
 
-	books := data.LoadBooks("library.json")
+	utils.Debug("Loading library from " + libraryPath)
+
+	books := data.LoadBooks(libraryPath)
 
 	var updatedBooks []data.Book
 	var commands []string
-	const rateLimit = 100 // calls per minute
+	const rateLimit = 100 // set to the max number of calls per minute allowed by the API.
 	minInterval := time.Minute / rateLimit
 
 	for _, book := range books {
+		// Sleep for the minimum interval to avoid API rate limiting.
 		time.Sleep(minInterval)
-		description, apiCategories := api.FetchMetadata(utils.CleanBookName(book.Title))
-		category := categorizer.Categorize(book.Title, description)
 
-		if !utils.Contains(book.Tags, category) {
-			book.Tags = append(book.Tags, category)
+		description, apiCategories := api.FetchMetadata(nil, utils.CleanBookName(book.Title))
+		categories := categorizer.Categorize(book.Title, description)
+
+		if len(apiCategories) > 0 {
+			book.Tags = append(book.Tags, apiCategories...)
 		}
-		book.Tags = append(book.Tags, apiCategories...)
+		if len(categories) > 0 {
+			book.Tags = append(book.Tags, categories...)
+		}
+		// Remove duplicates
 		book.Tags = utils.Unique(book.Tags)
 
 		updatedBooks = append(updatedBooks, book)
@@ -47,5 +61,5 @@ func main() {
 
 	data.SaveBooks(updatedBooks, "updated_library_with_api.json")
 	os.WriteFile("update_tags_with_api.sh", []byte(strings.Join(commands, "\n")), 0755)
-	fmt.Println("Categorization with API complete. Generated update_tags_with_api.sh.")
+	utils.Info("Categorization with API complete. Generated update_tags_with_api.sh.")
 }
